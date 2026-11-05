@@ -289,10 +289,10 @@
                     <tr><th>Vizsgatárgy</th><th>Kérdések száma</th></tr>
                 </thead>
                 <tbody>
-                    <tr><td>I.</td><td><input type="number" id="cnt_I" value="10" min="0"></td></tr>
-                    <tr><td>II.</td><td><input type="number" id="cnt_II" value="10" min="0"></td></tr>
-                    <tr><td>III.</td><td><input type="number" id="cnt_III" value="10" min="0"></td></tr>
-                    <tr><td>IV.</td><td><input type="number" id="cnt_IV" value="10" min="0"></td></tr>
+                    <tr><td>I.</td><td><input type="number" id="cnt_I" value="10" min="0" onchange="saveQuestionCounts()"></td></tr>
+                    <tr><td>II.</td><td><input type="number" id="cnt_II" value="10" min="0" onchange="saveQuestionCounts()"></td></tr>
+                    <tr><td>III.</td><td><input type="number" id="cnt_III" value="10" min="0" onchange="saveQuestionCounts()"></td></tr>
+                    <tr><td>IV.</td><td><input type="number" id="cnt_IV" value="10" min="0" onchange="saveQuestionCounts()"></td></tr>
                 </tbody>
             </table>
 
@@ -349,7 +349,7 @@
             <div class="footer">
                 <div class="footer-left">
                     <div class="question-stats" id="questionStatsLabel">Még nem találkoztál ezzel a kérdéssel.</div>
-                    <label id="autoNextLabel"><input type="checkbox" id="autoNext"> Automatikus továbblépés</label>
+                    <label id="autoNextLabel"><input type="checkbox" id="autoNext" onchange="saveAutoNextSetting()"> Automatikus továbblépés</label>
                     <button id="restartBtn" class="next-btn" style="display:none; padding:4px 16px; font-size:14px;" onclick="location.reload()">Új teszt indítása</button>
                 </div>
                 <div class="footer-time">
@@ -368,6 +368,39 @@
         let qTime = 0, tTime = 0;
         let timerInterval = null;
         let hasAnsweredCurrent = false;
+
+        // --- BEÁLLÍTÁSOK BETÖLTÉSE ÉS MENTÉSE ---
+        window.addEventListener('DOMContentLoaded', () => {
+            loadSavedSettings();
+        });
+
+        function loadSavedSettings() {
+            const keys = ['I', 'II', 'III', 'IV'];
+            keys.forEach(k => {
+                const savedVal = localStorage.getItem('setting_cnt_' + k);
+                if (savedVal !== null) {
+                    document.getElementById('cnt_' + k).value = savedVal;
+                }
+            });
+
+            const savedAutoNext = localStorage.getItem('setting_autoNext');
+            if (savedAutoNext !== null) {
+                document.getElementById('autoNext').checked = (savedAutoNext === 'true');
+            }
+        }
+
+        function saveQuestionCounts() {
+            const keys = ['I', 'II', 'III', 'IV'];
+            keys.forEach(k => {
+                const val = document.getElementById('cnt_' + k).value;
+                localStorage.setItem('setting_cnt_' + k, val);
+            });
+        }
+
+        function saveAutoNextSetting() {
+            const isChecked = document.getElementById('autoNext').checked;
+            localStorage.setItem('setting_autoNext', isChecked);
+        }
 
         // --- LOCALSTORAGE STATISZTIKA KEZELÉS ---
         function getCompletedTestsCount() {
@@ -416,6 +449,9 @@
                 return;
             }
 
+            // Elmentjük a jelenlegi kérdésszám beállításokat
+            saveQuestionCounts();
+
             const keys = ['I', 'II', 'III', 'IV'];
             selectedQuestions = [];
 
@@ -439,7 +475,6 @@
                 return;
             }
 
-            // Elindított teszt: megmutatja a már befejezett tesztek számát a fejlécben
             document.getElementById('testOrderNr').innerText = getCompletedTestsCount();
 
             document.getElementById('setupScreen').style.display = 'none';
@@ -482,7 +517,6 @@
             document.getElementById('metaTopic2').innerText = q.topic2 || '';
             document.getElementById('questionText').innerText = q.question;
 
-            // Bal alsó statisztika kiírása a VBA makród logikájának megfelelően
             const history = getQuestionHistory(q.subjKey, q.orderNr);
             const statsLabel = document.getElementById('questionStatsLabel');
             if (history.seen === 0) {
@@ -512,7 +546,6 @@
             const buttons = document.querySelectorAll('.answer-btn');
             const isCorrect = (chosenIdx === q.correctIndex);
 
-            // Logoljuk az adatbázisba a kérdésre adott választ
             updateQuestionHistory(q.subjKey, q.orderNr, isCorrect);
 
             if (isCorrect) {
@@ -535,7 +568,6 @@
         }
 
         function nextQuestion() {
-            // Ha válasz nélkül lépett tovább (Kihagyott kérdés)
             const q = selectedQuestions[currentIndex];
             if (!hasAnsweredCurrent) {
                 updateQuestionHistory(q.subjKey, q.orderNr, false);
@@ -552,7 +584,6 @@
         function showResultsScreen() {
             clearInterval(timerInterval);
 
-            // Befejezett tesztek számának növelése és elmentése
             let completed = getCompletedTestsCount() + 1;
             localStorage.setItem('completedTestsCount', completed);
             document.getElementById('testOrderNr').innerText = completed;
