@@ -23,16 +23,17 @@ body {
     display: flex;
     justify-content: center;
     align-items: center;
-    height: 100vh;
+    min-height: 100vh;
     width: 100vw;
-    overflow: hidden;
-    padding: 4px;
+    overflow: hidden; /* Nem engedi elcsúszni az oldalt */
+    padding: 6px;
+    box-sizing: border-box;
 }
 
 .app-window {
     width: 100%;
-    height: 100%;
-    max-width: 1000px;
+    max-width: 950px;
+    height: 96vh; /* Pontosan a képernyő 96%-át tölti ki, így az alja is látszik */
     background: var(--card);
     border: 1px solid var(--border);
     border-radius: 4px;
@@ -72,14 +73,24 @@ body {
     -webkit-box-orient: vertical;
 }
 
-/* DINAMIKUS KÖZÉPSŐ RÉSZ - Kitölti a maradék helyet, saját görgetővel ha kell */
+/* KÖZÉPSŐ RÉSZ - Rugalmasan igazodik, és ha sok a szöveg, csak ezen belül lehet görgetni */
 .body-content {
-    padding: 8px 20px;
+    padding: 10px 20px;
     flex: 1;
     display: flex;
     flex-direction: column;
-    overflow-y: auto; /* Ha kevés a hely fektetett módban, a középső rész görgethető */
+    overflow: hidden;
     position: relative;
+}
+
+.answers-container {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    width: 100%;
+    flex: 1;
+    overflow-y: auto; /* Ha hosszú a válasz, csak itt jelenik meg görgető, a footer stabilan lent marad */
+    padding-right: 4px;
 }
 
 #questionPanel {
@@ -241,16 +252,15 @@ body {
 
 /* FIX FOOTER - Mindig látszik alul */
 .footer {
-    padding: 6px 14px;
+    padding: 8px 18px;
     display: flex;
     justify-content: space-between;
     align-items: flex-end;
-    font-size: 12px;
+    font-size: 12.5px;
     color: var(--text-muted);
-    flex-shrink: 0;
+    flex-shrink: 0; /* Megakadályozza, hogy a sáv összetömörödjön vagy eltűnjön */
     border-top: 1px solid #d0d0d0;
     background: #fafafa;
-    min-height: 40px;
 }
 
 .footer-left {
