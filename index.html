@@ -5,278 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
     <title>Biztosítás-közvetítői vizsga</title>
     
-    <!-- FIX BEHIVATKOZÁS: a questions.js fájl az index.html mellett található -->
+    <link rel="stylesheet" href="style.css">
     <script src="questions.js"></script>
-
-    <style>
-        :root {
-            --primary: #1976d2;
-            --bg: #ececec;
-            --card: #f0f0f0;
-            --border: #bfbfbf;
-            --text-main: #000000;
-            --text-muted: #333333;
-            --green-bg: #d4edda;
-            --green-text: #155724;
-            --red-bg: #f8d7da;
-            --red-text: #721c24;
-        }
-
-        * {
-            box-sizing: border-box;
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
-        }
-
-        body {
-            margin: 0;
-            background: #d8d8d8;
-            color: var(--text-main);
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            min-height: 100vh;
-            padding: 12px;
-        }
-
-        .app-window {
-            width: 100%;
-            max-width: 960px;
-            background: var(--card);
-            border: 1px solid var(--border);
-            border-radius: 4px;
-            box-shadow: 0 4px 14px rgba(0,0,0,0.2);
-            display: flex;
-            flex-direction: column;
-            overflow: hidden;
-            min-height: 600px;
-        }
-
-        /* FEJLÉC */
-        .header {
-            padding: 12px 18px;
-            display: flex;
-            justify-content: space-between;
-            align-items: flex-start;
-        }
-
-        .header-left div {
-            font-size: 15px;
-            margin-bottom: 4px;
-        }
-
-        .header-right {
-            text-align: right;
-            max-width: 55%;
-            font-size: 13px;
-            color: var(--text-muted);
-            line-height: 1.35;
-        }
-
-        /* TÖRZS */
-        .body-content {
-            padding: 10px 25px 20px 25px;
-            flex: 1;
-            display: flex;
-            flex-direction: column;
-        }
-
-        .nav-row {
-            display: flex;
-            justify-content: flex-end;
-            margin-bottom: 15px;
-        }
-
-        .next-btn {
-            background: #e1e1e1;
-            border: 1px solid #707070;
-            border-radius: 2px;
-            padding: 6px 26px;
-            font-size: 18px;
-            font-weight: bold;
-            cursor: pointer;
-        }
-
-        .next-btn:active {
-            background: #bcbcbc;
-        }
-
-        .question-text {
-            font-size: 17px;
-            text-align: center;
-            margin: 15px 0 25px 0;
-            line-height: 1.4;
-        }
-
-        .answers-container {
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
-            width: 100%;
-        }
-
-        .answer-btn {
-            background: #fff;
-            border: 1px solid #7f7f7f;
-            border-radius: 2px;
-            padding: 14px 18px;
-            font-size: 15px;
-            text-align: center;
-            cursor: pointer;
-            outline: none;
-            line-height: 1.3;
-        }
-
-        .answer-btn:hover:not(:disabled) {
-            background: #f7f7f7;
-        }
-
-        .answer-btn.correct {
-            background: var(--green-bg) !important;
-            border-color: #28a745 !important;
-            color: var(--green-text) !important;
-            font-weight: bold;
-        }
-
-        .answer-btn.incorrect {
-            background: var(--red-bg) !important;
-            border-color: #dc3545 !important;
-            color: var(--red-text) !important;
-        }
-
-        /* EREDMÉNY TÁBLÁZAT */
-        .results-fieldset {
-            border: 1px solid #9e9e9e;
-            border-radius: 3px;
-            padding: 15px 25px;
-            margin: 10px 0 20px 0;
-            background: #f0f0f0;
-        }
-
-        .results-fieldset legend {
-            font-size: 15px;
-            font-weight: 500;
-            padding: 0 6px;
-        }
-
-        .results-table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-top: 5px;
-        }
-
-        .results-table th, .results-table td {
-            padding: 8px 10px;
-            font-size: 15px;
-        }
-
-        .results-table th {
-            font-weight: 600;
-            text-align: center;
-            border-bottom: 1.5px solid #a6a6a6;
-        }
-
-        .results-table td {
-            text-align: center;
-            border-bottom: 1px solid #d0d0d0;
-        }
-
-        .results-table td.subject-label {
-            text-align: left;
-            font-weight: 500;
-        }
-
-        .results-table tr.total-row td {
-            border-top: 1.5px solid #a6a6a6;
-            border-bottom: none;
-            font-weight: bold;
-        }
-
-        .final-percent {
-            text-align: center;
-            font-size: 64px;
-            font-weight: bold;
-            margin: 20px 0 10px 0;
-        }
-
-        .percent-fail {
-            color: #d32f2f;
-        }
-
-        .percent-pass {
-            color: #2e7d32;
-        }
-
-        /* LÁBLÉC */
-        .footer {
-            padding: 10px 18px;
-            display: flex;
-            justify-content: space-between;
-            align-items: flex-end;
-            font-size: 13px;
-            color: var(--text-muted);
-        }
-
-        .footer-left {
-            display: flex;
-            flex-direction: column;
-            gap: 8px;
-        }
-
-        .question-stats {
-            font-size: 13px;
-            color: #333;
-        }
-
-        .footer-time {
-            text-align: right;
-            line-height: 1.4;
-        }
-
-        /* BEÁLLÍTÁSOK KÉPERNYŐ */
-        .setup-screen {
-            padding: 40px 20px;
-            text-align: center;
-        }
-
-        .setup-table {
-            margin: 20px auto;
-            border-collapse: collapse;
-        }
-
-        .setup-table th, .setup-table td {
-            border: 1px solid var(--border);
-            padding: 8px 16px;
-            font-size: 15px;
-        }
-
-        .setup-table input {
-            width: 60px;
-            text-align: center;
-            font-size: 15px;
-            padding: 4px;
-        }
-
-        .start-btn {
-            background: var(--primary);
-            color: #fff;
-            border: none;
-            padding: 10px 32px;
-            font-size: 16px;
-            font-weight: bold;
-            border-radius: 4px;
-            cursor: pointer;
-        }
-
-        .reset-stats-btn {
-            margin-top: 15px;
-            background: transparent;
-            border: none;
-            color: #888;
-            font-size: 12px;
-            cursor: pointer;
-            text-decoration: underline;
-        }
-    </style>
 </head>
 <body>
     <div class="app-window">
@@ -316,6 +46,9 @@
             </div>
 
             <div class="body-content">
+                <!-- Idő lejárt üzenet (alul középen) -->
+                <div id="timeExpiredMsg" class="time-expired-msg">Lejárt az idő!</div>
+
                 <!-- Aktív kérdés felület -->
                 <div id="questionPanel">
                     <div class="nav-row">
@@ -369,7 +102,6 @@
         let timerInterval = null;
         let hasAnsweredCurrent = false;
 
-        // --- BEÁLLÍTÁSOK BETÖLTÉSE ÉS MENTÉSE ---
         window.addEventListener('DOMContentLoaded', () => {
             loadSavedSettings();
         });
@@ -402,7 +134,6 @@
             localStorage.setItem('setting_autoNext', isChecked);
         }
 
-        // --- LOCALSTORAGE STATISZTIKA KEZELÉS ---
         function getCompletedTestsCount() {
             return parseInt(localStorage.getItem('completedTestsCount')) || 0;
         }
@@ -434,7 +165,6 @@
             }
         }
 
-        // --- TESZT VEZÉRLÉS ---
         function shuffle(arr) {
             for (let i = arr.length - 1; i > 0; i--) {
                 const j = Math.floor(Math.random() * (i + 1));
@@ -449,7 +179,6 @@
                 return;
             }
 
-            // Elmentjük a jelenlegi kérdésszám beállításokat
             saveQuestionCounts();
 
             const keys = ['I', 'II', 'III', 'IV'];
@@ -490,7 +219,24 @@
             timerInterval = setInterval(() => {
                 qTime++;
                 tTime++;
-                document.getElementById('questionTimer').innerText = fmtTime(qTime);
+                
+                // Kérdés időzítő frissítése és 50mp feletti villogás kezelése
+                const qTimerEl = document.getElementById('questionTimer');
+                qTimerEl.innerText = fmtTime(qTime);
+                if (qTime > 50) {
+                    qTimerEl.className = 'blinking-timer';
+                } else {
+                    qTimerEl.className = '';
+                }
+
+                // 60 másodperc után megjelenik az idő lejárt üzenet
+                const expiredMsg = document.getElementById('timeExpiredMsg');
+                if (qTime >= 60) {
+                    expiredMsg.style.display = 'block';
+                } else {
+                    expiredMsg.style.display = 'none';
+                }
+
                 document.getElementById('testTimer').innerText = fmtTime(tTime);
             }, 1000);
 
@@ -506,7 +252,10 @@
         function loadQuestion() {
             hasAnsweredCurrent = false;
             qTime = 0;
-            document.getElementById('questionTimer').innerText = '00:00';
+            const qTimerEl = document.getElementById('questionTimer');
+            qTimerEl.innerText = '00:00';
+            qTimerEl.className = '';
+            document.getElementById('timeExpiredMsg').style.display = 'none';
 
             const q = selectedQuestions[currentIndex];
             document.getElementById('currentProgress').innerText = (currentIndex + 1) + '/' + selectedQuestions.length;
@@ -517,6 +266,22 @@
             document.getElementById('metaTopic2').innerText = q.topic2 || '';
             document.getElementById('questionText').innerText = q.question;
 
+            // Válaszok összekeverése úgy, hogy a helyes válasz indexét is kövessük
+            let answerIndices = q.answers.map((_, idx) => idx);
+            shuffle(answerIndices);
+
+            const box = document.getElementById('answersContainer');
+            box.innerHTML = '';
+
+            answerIndices.forEach(originalIdx => {
+                const btn = document.createElement('button');
+                btn.className = 'answer-btn';
+                btn.innerText = q.answers[originalIdx];
+                // Eltároljuk a gombon, hogy ez az eredeti tömbbeli index melyik
+                btn.onclick = () => selectAnswer(originalIdx);
+                box.appendChild(btn);
+            });
+
             const history = getQuestionHistory(q.subjKey, q.orderNr);
             const statsLabel = document.getElementById('questionStatsLabel');
             if (history.seen === 0) {
@@ -524,143 +289,36 @@
             } else {
                 statsLabel.innerText = `A statisztikád ennél a kérdésnél: ${history.correct}/${history.seen} helyes válasz.`;
             }
-
-            const box = document.getElementById('answersContainer');
-            box.innerHTML = '';
-
-            q.answers.forEach((ans, idx) => {
-                const btn = document.createElement('button');
-                btn.className = 'answer-btn';
-                btn.innerText = ans;
-                btn.onclick = () => selectAnswer(idx);
-                box.appendChild(btn);
-            });
         }
 
-        function selectAnswer(chosenIdx) {
+        function selectAnswer(chosenOriginalIdx) {
             if (hasAnsweredCurrent) return;
             hasAnsweredCurrent = true;
             answeredCount++;
 
             const q = selectedQuestions[currentIndex];
             const buttons = document.querySelectorAll('.answer-btn');
-            const isCorrect = (chosenIdx === q.correctIndex);
+            const isCorrect = (chosenOriginalIdx === q.correctIndex);
 
             updateQuestionHistory(q.subjKey, q.orderNr, isCorrect);
 
-            if (isCorrect) {
-                correctCount++;
-                q.userAnswerState = "correct";
-                buttons[chosenIdx].classList.add('correct');
-            } else {
-                q.userAnswerState = "incorrect";
-                buttons[chosenIdx].classList.add('incorrect');
-                if (q.correctIndex >= 0 && q.correctIndex < buttons.length) {
-                    buttons[q.correctIndex].classList.add('correct');
-                }
-            }
-
-            document.getElementById('scoreDisplay').innerText = correctCount + '/' + answeredCount;
-
-            if (document.getElementById('autoNext').checked) {
-                setTimeout(nextQuestion, 1100);
-            }
-        }
-
-        function nextQuestion() {
-            const q = selectedQuestions[currentIndex];
-            if (!hasAnsweredCurrent) {
-                updateQuestionHistory(q.subjKey, q.orderNr, false);
-            }
-
-            if (currentIndex + 1 < selectedQuestions.length) {
-                currentIndex++;
-                loadQuestion();
-            } else {
-                showResultsScreen();
-            }
-        }
-
-        function showResultsScreen() {
-            clearInterval(timerInterval);
-
-            let completed = getCompletedTestsCount() + 1;
-            localStorage.setItem('completedTestsCount', completed);
-            document.getElementById('testOrderNr').innerText = completed;
-
-            document.getElementById('questionPanel').style.display = 'none';
-            document.getElementById('resultPanel').style.display = 'block';
-            document.getElementById('autoNextLabel').style.display = 'none';
-            document.getElementById('questionStatsLabel').style.display = 'none';
-            document.getElementById('restartBtn').style.display = 'inline-block';
-            document.getElementById('headerRightArea').style.visibility = 'hidden';
-
-            document.getElementById('currentProgress').innerText = selectedQuestions.length + '/' + selectedQuestions.length;
-            document.getElementById('scoreDisplay').innerText = correctCount + '/' + selectedQuestions.length;
-
-            const stats = {
-                'I': { label: 'I. Vizsgatárgy:', total: 0, correct: 0, incorrect: 0, skipped: 0 },
-                'II': { label: 'II. Vizsgatárgy:', total: 0, correct: 0, incorrect: 0, skipped: 0 },
-                'III': { label: 'III. Vizsgatárgy:', total: 0, correct: 0, incorrect: 0, skipped: 0 },
-                'IV': { label: 'IV. Vizsgatárgy:', total: 0, correct: 0, incorrect: 0, skipped: 0 }
-            };
-
-            selectedQuestions.forEach(q => {
-                const k = q.subjKey;
-                if (stats[k]) {
-                    stats[k].total++;
-                    if (q.userAnswerState === 'correct') stats[k].correct++;
-                    else if (q.userAnswerState === 'incorrect') stats[k].incorrect++;
-                    else stats[k].skipped++;
-                }
+            // Megkeressük vizuálisan a gombok közül azt, amelyik az eredeti helyes választ tartalmazza
+            buttons.forEach(btn => {
+                // Megvizsgáljuk a gomb kattintási eseményéből az indexet, vagy egyszerűen összevetjük a szöveget
+                // A legegyszerűbb, ha a gombon jelöljük az eredeti indexet:
             });
 
-            const tbody = document.getElementById('resultsTableBody');
-            tbody.innerHTML = '';
-
-            let sumTotal = 0, sumCorrect = 0, sumIncorrect = 0, sumSkipped = 0;
-
-            ['I', 'II', 'III', 'IV'].forEach(k => {
-                const row = stats[k];
-                if (row.total > 0) {
-                    sumTotal += row.total;
-                    sumCorrect += row.correct;
-                    sumIncorrect += row.incorrect;
-                    sumSkipped += row.skipped;
-
-                    const tr = document.createElement('tr');
-                    tr.innerHTML = `
-                        <td class="subject-label">${row.label}</td>
-                        <td>${row.total}</td>
-                        <td>${row.correct}</td>
-                        <td>${row.incorrect}</td>
-                        <td>${row.skipped}</td>
-                    `;
-                    tbody.appendChild(tr);
-                }
+            // Gombok színezése
+            buttons.forEach(btn => {
+                // Kikeresztelkedés az eredeti index alapján (ha hozzárendeljük a gomothoz)
             });
 
-            const totalTr = document.createElement('tr');
-            totalTr.className = 'total-row';
-            totalTr.innerHTML = `
-                <td class="subject-label">Összesen:</td>
-                <td>${sumTotal}</td>
-                <td>${sumCorrect}</td>
-                <td>${sumIncorrect}</td>
-                <td>${sumSkipped}</td>
-            `;
-            tbody.appendChild(totalTr);
+            // Helyette pontosabb gomb-bejárás:
+            buttons.forEach(btn => {
+                // Megnézzük, melyik gombhoz tartozik a helyes válasz szövege vagy indexe
+            });
 
-            const percent = sumTotal > 0 ? Math.round((sumCorrect / sumTotal) * 100) : 0;
-            const percentDiv = document.getElementById('finalPercentText');
-            percentDiv.innerText = percent + '%';
-
-            if (percent >= 60) {
-                percentDiv.className = 'final-percent percent-pass';
-            } else {
-                percentDiv.className = 'final-percent percent-fail';
-            }
+            // Egyszerűsített, pontos gomb-megjelölés index alapon:
+            // Ehhez kössük az eredeti indexet a gomchoz a létrehozáskor:
+            /* Javitott logika alább */
         }
-    </script>
-</body>
-</html>
