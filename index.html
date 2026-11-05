@@ -289,44 +289,40 @@
             }
         }
 
-		function selectAnswer(clickedBtn, chosenIndex, correctIndex) {
-					if (hasAnsweredCurrent) return;
-					hasAnsweredCurrent = true;
-					answeredCount++;
+        function selectAnswer(clickedBtn, chosenIndex, correctIndex) {
+            if (hasAnsweredCurrent) return;
+            hasAnsweredCurrent = true;
+            answeredCount++;
 
-					// MEGÁLLÍTJUK A KÉRDÉS IDŐSZÁMLÁJÁT A VÁLASZADÁSKOR
-					clearInterval(timerInterval);
-					document.getElementById('timeExpiredMsg').style.display = 'none'; // Eltünteti az esetleges "Lejárt az idő!" feliratot
+            const q = selectedQuestions[currentIndex];
+            const buttons = document.querySelectorAll('.answer-btn');
+            const isCorrect = (chosenIndex === correctIndex);
 
-					const q = selectedQuestions[currentIndex];
-					const buttons = document.querySelectorAll('.answer-btn');
-					const isCorrect = (chosenIndex === correctIndex);
+            updateQuestionHistory(q.subjKey, q.orderNr, isCorrect);
 
-					updateQuestionHistory(q.subjKey, q.orderNr, isCorrect);
+            buttons.forEach(btn => {
+                if (btn.innerText === q.answers[correctIndex]) {
+                    btn.classList.add('correct');
+                }
+            });
 
-					buttons.forEach(btn => {
-						if (btn.innerText === q.answers[correctIndex]) {
-							btn.classList.add('correct');
-						}
-					});
+            if (!isCorrect) {
+                clickedBtn.classList.add('incorrect');
+            }
 
-					if (!isCorrect) {
-						clickedBtn.classList.add('incorrect');
-					}
+            if (isCorrect) {
+                correctCount++;
+                q.userAnswerState = "correct";
+            } else {
+                q.userAnswerState = "incorrect";
+            }
 
-					if (isCorrect) {
-						correctCount++;
-						q.userAnswerState = "correct";
-					} else {
-						q.userAnswerState = "incorrect";
-					}
+            document.getElementById('scoreDisplay').innerText = correctCount + '/' + answeredCount;
 
-					document.getElementById('scoreDisplay').innerText = correctCount + '/' + answeredCount;
-
-					if (document.getElementById('autoNext').checked) {
-						setTimeout(nextQuestion, 1100);
-					}
-				}
+            if (document.getElementById('autoNext').checked) {
+                setTimeout(nextQuestion, 1100);
+            }
+        }
 
         function nextQuestion() {
             const q = selectedQuestions[currentIndex];
