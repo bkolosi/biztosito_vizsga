@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
     <title>Biztosítás-közvetítői vizsga</title>
     
-    <!-- FIX BEHIVATKOZÁS: közvetlenül betölti az adatbázist -->
+    <!-- FIX BEHIVATKOZÁS: a questions.js fájl az index.html mellett található -->
     <script src="questions.js"></script>
 
     <style>
@@ -143,7 +143,7 @@
             color: var(--red-text) !important;
         }
 
-        /* EREDMÉNY KERET ÉS TÁBLÁZAT */
+        /* EREDMÉNY TÁBLÁZAT */
         .results-fieldset {
             border: 1px solid #9e9e9e;
             border-radius: 3px;
@@ -216,6 +216,17 @@
             color: var(--text-muted);
         }
 
+        .footer-left {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .question-stats {
+            font-size: 13px;
+            color: #333;
+        }
+
         .footer-time {
             text-align: right;
             line-height: 1.4;
@@ -255,6 +266,16 @@
             border-radius: 4px;
             cursor: pointer;
         }
+
+        .reset-stats-btn {
+            margin-top: 15px;
+            background: transparent;
+            border: none;
+            color: #888;
+            font-size: 12px;
+            cursor: pointer;
+            text-decoration: underline;
+        }
     </style>
 </head>
 <body>
@@ -275,7 +296,8 @@
                 </tbody>
             </table>
 
-            <button class="start-btn" onclick="startQuiz()">Teszt indítása</button>
+            <button class="start-btn" onclick="startQuiz()">Teszt indítása</button><br>
+            <button class="reset-stats-btn" onclick="resetAllLogs()">Statisztikák és számlálók törlése</button>
         </div>
 
         <!-- 2. KÉRDÉS- ÉS EREDMÉNY MEGJELENÍTŐ KÉPERNYŐ -->
@@ -283,7 +305,7 @@
             <div class="header">
                 <div class="header-left">
                     <div>Biztosítás-közvetítői vizsga</div>
-                    <div>Teszt sorszám: <span id="testOrderNr">1</span> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Kérdés: <span id="currentProgress">1/20</span></div>
+                    <div>Teszt sorszám: <span id="testOrderNr">0</span> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Kérdés: <span id="currentProgress">1/20</span></div>
                     <div>Helyes válaszok: <span id="scoreDisplay">0/0</span></div>
                 </div>
                 <div class="header-right" id="headerRightArea">
@@ -325,7 +347,8 @@
             </div>
 
             <div class="footer">
-                <div>
+                <div class="footer-left">
+                    <div class="question-stats" id="questionStatsLabel">Még nem találkoztál ezzel a kérdéssel.</div>
                     <label id="autoNextLabel"><input type="checkbox" id="autoNext"> Automatikus továbblépés</label>
                     <button id="restartBtn" class="next-btn" style="display:none; padding:4px 16px; font-size:14px;" onclick="location.reload()">Új teszt indítása</button>
                 </div>
@@ -346,6 +369,39 @@
         let timerInterval = null;
         let hasAnsweredCurrent = false;
 
+        // --- LOCALSTORAGE STATISZTIKA KEZELÉS ---
+        function getCompletedTestsCount() {
+            return parseInt(localStorage.getItem('completedTestsCount')) || 0;
+        }
+
+        function getQuestionHistory(subjKey, orderNr) {
+            const key = `qstat_${subjKey}_${orderNr}`;
+            const data = localStorage.getItem(key);
+            if (data) {
+                return JSON.parse(data);
+            }
+            return { seen: 0, correct: 0 };
+        }
+
+        function updateQuestionHistory(subjKey, orderNr, isCorrect) {
+            const key = `qstat_${subjKey}_${orderNr}`;
+            const history = getQuestionHistory(subjKey, orderNr);
+            history.seen++;
+            if (isCorrect) {
+                history.correct++;
+            }
+            localStorage.setItem(key, JSON.stringify(history));
+        }
+
+        function resetAllLogs() {
+            if (confirm("Biztosan törölni szeretnéd az összes elmentett teszt- és kérdésstatisztikát?")) {
+                localStorage.clear();
+                alert("Minden statisztika sikeresen törölve!");
+                location.reload();
+            }
+        }
+
+        // --- TESZT VEZÉRLÉS ---
         function shuffle(arr) {
             for (let i = arr.length - 1; i > 0; i--) {
                 const j = Math.floor(Math.random() * (i + 1));
@@ -383,6 +439,9 @@
                 return;
             }
 
+            // Elindított teszt: megmutatja a már befejezett tesztek számát a fejlécben
+            document.getElementById('testOrderNr').innerText = getCompletedTestsCount();
+
             document.getElementById('setupScreen').style.display = 'none';
             document.getElementById('quizScreen').style.display = 'flex';
 
@@ -416,13 +475,21 @@
 
             const q = selectedQuestions[currentIndex];
             document.getElementById('currentProgress').innerText = (currentIndex + 1) + '/' + selectedQuestions.length;
-            document.getElementById('testOrderNr').innerText = q.orderNr;
             document.getElementById('scoreDisplay').innerText = correctCount + '/' + answeredCount;
 
             document.getElementById('metaSubject').innerText = q.subject || '';
             document.getElementById('metaTopic1').innerText = q.topic1 || '';
             document.getElementById('metaTopic2').innerText = q.topic2 || '';
             document.getElementById('questionText').innerText = q.question;
+
+            // Bal alsó statisztika kiírása a VBA makród logikájának megfelelően
+            const history = getQuestionHistory(q.subjKey, q.orderNr);
+            const statsLabel = document.getElementById('questionStatsLabel');
+            if (history.seen === 0) {
+                statsLabel.innerText = "Még nem találkoztál ezzel a kérdéssel.";
+            } else {
+                statsLabel.innerText = `A statisztikád ennél a kérdésnél: ${history.correct}/${history.seen} helyes válasz.`;
+            }
 
             const box = document.getElementById('answersContainer');
             box.innerHTML = '';
@@ -443,8 +510,12 @@
 
             const q = selectedQuestions[currentIndex];
             const buttons = document.querySelectorAll('.answer-btn');
+            const isCorrect = (chosenIdx === q.correctIndex);
 
-            if (chosenIdx === q.correctIndex) {
+            // Logoljuk az adatbázisba a kérdésre adott választ
+            updateQuestionHistory(q.subjKey, q.orderNr, isCorrect);
+
+            if (isCorrect) {
                 correctCount++;
                 q.userAnswerState = "correct";
                 buttons[chosenIdx].classList.add('correct');
@@ -464,6 +535,12 @@
         }
 
         function nextQuestion() {
+            // Ha válasz nélkül lépett tovább (Kihagyott kérdés)
+            const q = selectedQuestions[currentIndex];
+            if (!hasAnsweredCurrent) {
+                updateQuestionHistory(q.subjKey, q.orderNr, false);
+            }
+
             if (currentIndex + 1 < selectedQuestions.length) {
                 currentIndex++;
                 loadQuestion();
@@ -475,9 +552,15 @@
         function showResultsScreen() {
             clearInterval(timerInterval);
 
+            // Befejezett tesztek számának növelése és elmentése
+            let completed = getCompletedTestsCount() + 1;
+            localStorage.setItem('completedTestsCount', completed);
+            document.getElementById('testOrderNr').innerText = completed;
+
             document.getElementById('questionPanel').style.display = 'none';
             document.getElementById('resultPanel').style.display = 'block';
             document.getElementById('autoNextLabel').style.display = 'none';
+            document.getElementById('questionStatsLabel').style.display = 'none';
             document.getElementById('restartBtn').style.display = 'inline-block';
             document.getElementById('headerRightArea').style.visibility = 'hidden';
 
