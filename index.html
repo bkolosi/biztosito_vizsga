@@ -289,40 +289,44 @@
             }
         }
 
-        function selectAnswer(clickedBtn, chosenIndex, correctIndex) {
-            if (hasAnsweredCurrent) return;
-            hasAnsweredCurrent = true;
-            answeredCount++;
+		function selectAnswer(clickedBtn, chosenIndex, correctIndex) {
+					if (hasAnsweredCurrent) return;
+					hasAnsweredCurrent = true;
+					answeredCount++;
 
-            const q = selectedQuestions[currentIndex];
-            const buttons = document.querySelectorAll('.answer-btn');
-            const isCorrect = (chosenIndex === correctIndex);
+					// MEGÁLLÍTJUK A KÉRDÉS IDŐSZÁMLÁJÁT A VÁLASZADÁSKOR
+					clearInterval(timerInterval);
+					document.getElementById('timeExpiredMsg').style.display = 'none'; // Eltünteti az esetleges "Lejárt az idő!" feliratot
 
-            updateQuestionHistory(q.subjKey, q.orderNr, isCorrect);
+					const q = selectedQuestions[currentIndex];
+					const buttons = document.querySelectorAll('.answer-btn');
+					const isCorrect = (chosenIndex === correctIndex);
 
-            buttons.forEach(btn => {
-                if (btn.innerText === q.answers[correctIndex]) {
-                    btn.classList.add('correct');
-                }
-            });
+					updateQuestionHistory(q.subjKey, q.orderNr, isCorrect);
 
-            if (!isCorrect) {
-                clickedBtn.classList.add('incorrect');
-            }
+					buttons.forEach(btn => {
+						if (btn.innerText === q.answers[correctIndex]) {
+							btn.classList.add('correct');
+						}
+					});
 
-            if (isCorrect) {
-                correctCount++;
-                q.userAnswerState = "correct";
-            } else {
-                q.userAnswerState = "incorrect";
-            }
+					if (!isCorrect) {
+						clickedBtn.classList.add('incorrect');
+					}
 
-            document.getElementById('scoreDisplay').innerText = correctCount + '/' + answeredCount;
+					if (isCorrect) {
+						correctCount++;
+						q.userAnswerState = "correct";
+					} else {
+						q.userAnswerState = "incorrect";
+					}
 
-            if (document.getElementById('autoNext').checked) {
-                setTimeout(nextQuestion, 1100);
-            }
-        }
+					document.getElementById('scoreDisplay').innerText = correctCount + '/' + answeredCount;
+
+					if (document.getElementById('autoNext').checked) {
+						setTimeout(nextQuestion, 1100);
+					}
+				}
 
         function nextQuestion() {
             const q = selectedQuestions[currentIndex];
