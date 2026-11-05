@@ -26,14 +26,13 @@ body {
     height: 100vh;
     width: 100vw;
     overflow: hidden;
-    padding: 8px;
+    padding: 4px;
 }
 
 .app-window {
     width: 100%;
     height: 100%;
-    max-width: 960px;
-    max-height: 700px;
+    max-width: 1000px;
     background: var(--card);
     border: 1px solid var(--border);
     border-radius: 4px;
@@ -43,19 +42,21 @@ body {
     overflow: hidden;
 }
 
+/* FIX HEADER - Mindig látszik tetején, kompakt mérettel */
 .header {
-    padding: 10px 18px;
+    padding: 6px 14px;
     display: flex;
     justify-content: space-between;
-    align-items: flex-start;
+    align-items: center;
     flex-shrink: 0;
     border-bottom: 1px solid #d0d0d0;
     background: #fafafa;
+    min-height: 48px;
 }
 
 .header-left div {
     font-size: 13px;
-    margin-bottom: 2px;
+    margin-bottom: 1px;
 }
 
 .header-right {
@@ -63,31 +64,34 @@ body {
     max-width: 50%;
     font-size: 11px;
     color: var(--text-muted);
-    line-height: 1.25;
-    word-break: break-word; /* Hosszú szavak tördelése, hogy ne lógjanak ki */
-    max-height: 55px;        /* Maximális magasság korlátozás */
-    overflow: hidden;        /* Ha túl hosszú lenne, elrejti a felesleget a kereten belül */
+    line-height: 1.2;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
 }
 
+/* DINAMIKUS KÖZÉPSŐ RÉSZ - Kitölti a maradék helyet, saját görgetővel ha kell */
 .body-content {
-    padding: 12px 25px;
+    padding: 8px 20px;
     flex: 1;
     display: flex;
     flex-direction: column;
-    overflow: hidden;
+    overflow-y: auto; /* Ha kevés a hely fektetett módban, a középső rész görgethető */
     position: relative;
 }
 
 #questionPanel {
     display: flex;
     flex-direction: column;
-    height: 100%;
+    min-height: 100%;
 }
 
 .nav-row {
     display: flex;
     justify-content: flex-end;
-    margin-bottom: 8px;
+    margin-bottom: 4px;
     flex-shrink: 0;
 }
 
@@ -95,8 +99,8 @@ body {
     background: #e1e1e1;
     border: 1px solid #707070;
     border-radius: 2px;
-    padding: 4px 22px;
-    font-size: 16px;
+    padding: 2px 20px;
+    font-size: 15px;
     font-weight: bold;
     cursor: pointer;
 }
@@ -106,36 +110,32 @@ body {
 }
 
 .question-text {
-    font-size: 16px;
+    font-size: 15px;
     font-weight: 600;
     text-align: center;
-    margin: 5px 0 12px 0;
-    line-height: 1.35;
+    margin: 4px 0 10px 0;
+    line-height: 1.3;
     flex-shrink: 0;
 }
 
 .answers-container {
     display: flex;
     flex-direction: column;
-    gap: 8px;
+    gap: 6px;
     width: 100%;
-    overflow-y: auto;
-    flex: 1;
-    padding-right: 4px;
-    margin-bottom: 10px;
+    margin-bottom: 8px;
 }
 
 .answer-btn {
     background: #fff;
     border: 1px solid #7f7f7f;
     border-radius: 2px;
-    padding: 12px 16px;
-    font-size: 14px;
+    padding: 10px 14px;
+    font-size: 13px;
     text-align: center;
     cursor: pointer;
     outline: none;
-    line-height: 1.3;
-    flex-shrink: 0;
+    line-height: 1.25;
 }
 
 .answer-btn:hover:not(:disabled) {
@@ -155,24 +155,23 @@ body {
     color: var(--red-text) !important;
 }
 
-/* Idő lejárt felirat alul középen */
+/* Idő lejárt felirat */
 .time-expired-msg {
     position: absolute;
-    bottom: 15px;
+    bottom: 10px;
     left: 50%;
     transform: translateX(-50%);
-    font-size: 20px;
+    font-size: 18px;
     font-weight: bold;
     color: #d32f2f;
-    background: rgba(255, 235, 238, 0.9);
-    padding: 6px 16px;
+    background: rgba(255, 235, 238, 0.95);
+    padding: 4px 14px;
     border-radius: 4px;
     border: 1px solid #ffcdd2;
     display: none;
     z-index: 10;
 }
 
-/* Finom piros villogás 50mp felett */
 @keyframes softBlink {
     0% { opacity: 1; color: #d32f2f; }
     50% { opacity: 0.4; color: #d32f2f; }
@@ -187,13 +186,13 @@ body {
 .results-fieldset {
     border: 1px solid #9e9e9e;
     border-radius: 3px;
-    padding: 10px 20px;
-    margin: 5px 0 10px 0;
+    padding: 8px 15px;
+    margin: 4px 0 8px 0;
     background: #f0f0f0;
 }
 
 .results-fieldset legend {
-    font-size: 14px;
+    font-size: 13px;
     font-weight: 500;
     padding: 0 6px;
 }
@@ -201,12 +200,11 @@ body {
 .results-table {
     width: 100%;
     border-collapse: collapse;
-    margin-top: 2px;
 }
 
 .results-table th, .results-table td {
-    padding: 6px 8px;
-    font-size: 14px;
+    padding: 4px 6px;
+    font-size: 13px;
 }
 
 .results-table th {
@@ -233,82 +231,86 @@ body {
 
 .final-percent {
     text-align: center;
-    font-size: 48px;
+    font-size: 38px;
     font-weight: bold;
-    margin: 10px 0 5px 0;
+    margin: 6px 0 4px 0;
 }
 
 .percent-fail { color: #d32f2f; }
 .percent-pass { color: #2e7d32; }
 
+/* FIX FOOTER - Mindig látszik alul */
 .footer {
-    padding: 8px 18px;
+    padding: 6px 14px;
     display: flex;
     justify-content: space-between;
     align-items: flex-end;
-    font-size: 13px;
+    font-size: 12px;
     color: var(--text-muted);
     flex-shrink: 0;
     border-top: 1px solid #d0d0d0;
+    background: #fafafa;
+    min-height: 40px;
 }
 
 .footer-left {
     display: flex;
     flex-direction: column;
-    gap: 4px;
+    gap: 2px;
 }
 
 .question-stats {
-    font-size: 12px;
+    font-size: 11px;
     color: #333;
 }
 
 .footer-time {
     text-align: right;
-    line-height: 1.3;
+    line-height: 1.2;
 }
 
 .setup-screen {
-    padding: 30px 20px;
+    padding: 20px;
     text-align: center;
     height: 100%;
     display: flex;
     flex-direction: column;
     justify-content: center;
-    align-content: center;
+    align-items: center;
+    overflow-y: auto;
 }
 
 .setup-table {
-    margin: 15px auto;
+    margin: 10px auto;
     border-collapse: collapse;
 }
 
 .setup-table th, .setup-table td {
     border: 1px solid var(--border);
-    padding: 8px 16px;
-    font-size: 14px;
+    padding: 6px 14px;
+    font-size: 13px;
 }
 
 .setup-table input {
-    width: 60px;
+    width: 55px;
     text-align: center;
-    font-size: 14px;
-    padding: 4px;
+    font-size: 13px;
+    padding: 3px;
 }
 
 .start-btn {
     background: var(--primary);
     color: #fff;
     border: none;
-    padding: 10px 32px;
-    font-size: 15px;
+    padding: 8px 28px;
+    font-size: 14px;
     font-weight: bold;
     border-radius: 4px;
     cursor: pointer;
 }
 
 .reset-stats-btn {
-    margin-top: 12px;
+    margin-top: 8px;
     background: transparent;
     border: none;
     color: #888;
