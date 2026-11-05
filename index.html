@@ -5,10 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
     <title>Biztosítás-közvetítői vizsga</title>
     
-    <!-- Különálló CSS fájl behivatkozása -->
     <link rel="stylesheet" href="style.css">
-    
-    <!-- Adatbázis behivatkozása -->
     <script src="questions.js"></script>
 </head>
 <body>
@@ -49,6 +46,9 @@
             </div>
 
             <div class="body-content">
+                <!-- Idő lejárt üzenet -->
+                <div id="timeExpiredMsg" class="time-expired-msg">Lejárt az idő!</div>
+
                 <!-- Aktív kérdés felület -->
                 <div id="questionPanel">
                     <div class="nav-row">
@@ -58,7 +58,7 @@
                     <div class="answers-container" id="answersContainer"></div>
                 </div>
 
-                <!-- Végeredmény táblázat felület -->
+                <!-- Végeredmény táblázat -->
                 <div id="resultPanel" style="display:none;">
                     <fieldset class="results-fieldset">
                         <legend>Eredmény</legend>
@@ -219,7 +219,24 @@
             timerInterval = setInterval(() => {
                 qTime++;
                 tTime++;
-                document.getElementById('questionTimer').innerText = fmtTime(qTime);
+                
+                // Kérdés időzítő frissítése és villogás kezelése (50mp felett)
+                const qTimerEl = document.getElementById('questionTimer');
+                qTimerEl.innerText = fmtTime(qTime);
+                if (qTime > 50) {
+                    qTimerEl.className = 'blinking-timer';
+                } else {
+                    qTimerEl.className = '';
+                }
+
+                // 60 másodperc után megjelenik a Lejárt az idő felirat
+                const expiredMsg = document.getElementById('timeExpiredMsg');
+                if (qTime >= 60) {
+                    expiredMsg.style.display = 'block';
+                } else {
+                    expiredMsg.style.display = 'none';
+                }
+
                 document.getElementById('testTimer').innerText = fmtTime(tTime);
             }, 1000);
 
@@ -235,7 +252,10 @@
         function loadQuestion() {
             hasAnsweredCurrent = false;
             qTime = 0;
-            document.getElementById('questionTimer').innerText = '00:00';
+            const qTimerEl = document.getElementById('questionTimer');
+            qTimerEl.innerText = '00:00';
+            qTimerEl.className = '';
+            document.getElementById('timeExpiredMsg').style.display = 'none';
 
             const q = selectedQuestions[currentIndex];
             document.getElementById('currentProgress').innerText = (currentIndex + 1) + '/' + selectedQuestions.length;
@@ -246,6 +266,23 @@
             document.getElementById('metaTopic2').innerText = q.topic2 || '';
             document.getElementById('questionText').innerText = q.question;
 
+            // Válaszok véletlen keverése az eredeti indexek megőrzésével
+            let shuffledAnswers = q.answers.map((ansText, originalIndex) => {
+                return { text: ansText, index: originalIndex };
+            });
+            shuffle(shuffledAnswers);
+
+            const box = document.getElementById('answersContainer');
+            box.innerHTML = '';
+
+            shuffledAnswers.forEach(item => {
+                const btn = document.createElement('button');
+                btn.className = 'answer-btn';
+                btn.innerText = item.text;
+                btn.onclick = () => selectAnswer(btn, item.index, q.correctIndex);
+                box.appendChild(btn);
+            });
+
             const history = getQuestionHistory(q.subjKey, q.orderNr);
             const statsLabel = document.getElementById('questionStatsLabel');
             if (history.seen === 0) {
@@ -253,40 +290,38 @@
             } else {
                 statsLabel.innerText = `A statisztikád ennél a kérdésnél: ${history.correct}/${history.seen} helyes válasz.`;
             }
-
-            const box = document.getElementById('answersContainer');
-            box.innerHTML = '';
-
-            q.answers.forEach((ans, idx) => {
-                const btn = document.createElement('button');
-                btn.className = 'answer-btn';
-                btn.innerText = ans;
-                btn.onclick = () => selectAnswer(idx);
-                box.appendChild(btn);
-            });
         }
 
-        function selectAnswer(chosenIdx) {
+        function selectAnswer(clickedBtn, chosenIndex, correctIndex) {
             if (hasAnsweredCurrent) return;
             hasAnsweredCurrent = true;
             answeredCount++;
 
+            // Válaszadáskor megállítjuk a kérdés időszámlálóját
+            clearInterval(timerInterval);
+            document.getElementById('timeExpiredMsg').style.display = 'none';
+
             const q = selectedQuestions[currentIndex];
             const buttons = document.querySelectorAll('.answer-btn');
-            const isCorrect = (chosenIdx === q.correctIndex);
+            const isCorrect = (chosenIndex === correctIndex);
 
             updateQuestionHistory(q.subjKey, q.orderNr, isCorrect);
+
+            buttons.forEach(btn => {
+                if (btn.innerText === q.answers[correctIndex]) {
+                    btn.classList.add('correct');
+                }
+            });
+
+            if (!isCorrect) {
+                clickedBtn.classList.add('incorrect');
+            }
 
             if (isCorrect) {
                 correctCount++;
                 q.userAnswerState = "correct";
-                buttons[chosenIdx].classList.add('correct');
             } else {
                 q.userAnswerState = "incorrect";
-                buttons[chosenIdx].classList.add('incorrect');
-                if (q.correctIndex >= 0 && q.correctIndex < buttons.length) {
-                    buttons[q.correctIndex].classList.add('correct');
-                }
             }
 
             document.getElementById('scoreDisplay').innerText = correctCount + '/' + answeredCount;
