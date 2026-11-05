@@ -5,8 +5,278 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
     <title>Biztosítás-közvetítői vizsga</title>
     
-    <link rel="stylesheet" href="style.css">
+    <!-- FIX BEHIVATKOZÁS: a questions.js fájl az index.html mellett található -->
     <script src="questions.js"></script>
+
+    <style>
+        :root {
+            --primary: #1976d2;
+            --bg: #ececec;
+            --card: #f0f0f0;
+            --border: #bfbfbf;
+            --text-main: #000000;
+            --text-muted: #333333;
+            --green-bg: #d4edda;
+            --green-text: #155724;
+            --red-bg: #f8d7da;
+            --red-text: #721c24;
+        }
+
+        * {
+            box-sizing: border-box;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
+        }
+
+        body {
+            margin: 0;
+            background: #d8d8d8;
+            color: var(--text-main);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 12px;
+        }
+
+        .app-window {
+            width: 100%;
+            max-width: 960px;
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 4px;
+            box-shadow: 0 4px 14px rgba(0,0,0,0.2);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            min-height: 600px;
+        }
+
+        /* FEJLÉC */
+        .header {
+            padding: 12px 18px;
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+        }
+
+        .header-left div {
+            font-size: 15px;
+            margin-bottom: 4px;
+        }
+
+        .header-right {
+            text-align: right;
+            max-width: 55%;
+            font-size: 13px;
+            color: var(--text-muted);
+            line-height: 1.35;
+        }
+
+        /* TÖRZS */
+        .body-content {
+            padding: 10px 25px 20px 25px;
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .nav-row {
+            display: flex;
+            justify-content: flex-end;
+            margin-bottom: 15px;
+        }
+
+        .next-btn {
+            background: #e1e1e1;
+            border: 1px solid #707070;
+            border-radius: 2px;
+            padding: 6px 26px;
+            font-size: 18px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        .next-btn:active {
+            background: #bcbcbc;
+        }
+
+        .question-text {
+            font-size: 17px;
+            text-align: center;
+            margin: 15px 0 25px 0;
+            line-height: 1.4;
+        }
+
+        .answers-container {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            width: 100%;
+        }
+
+        .answer-btn {
+            background: #fff;
+            border: 1px solid #7f7f7f;
+            border-radius: 2px;
+            padding: 14px 18px;
+            font-size: 15px;
+            text-align: center;
+            cursor: pointer;
+            outline: none;
+            line-height: 1.3;
+        }
+
+        .answer-btn:hover:not(:disabled) {
+            background: #f7f7f7;
+        }
+
+        .answer-btn.correct {
+            background: var(--green-bg) !important;
+            border-color: #28a745 !important;
+            color: var(--green-text) !important;
+            font-weight: bold;
+        }
+
+        .answer-btn.incorrect {
+            background: var(--red-bg) !important;
+            border-color: #dc3545 !important;
+            color: var(--red-text) !important;
+        }
+
+        /* EREDMÉNY TÁBLÁZAT */
+        .results-fieldset {
+            border: 1px solid #9e9e9e;
+            border-radius: 3px;
+            padding: 15px 25px;
+            margin: 10px 0 20px 0;
+            background: #f0f0f0;
+        }
+
+        .results-fieldset legend {
+            font-size: 15px;
+            font-weight: 500;
+            padding: 0 6px;
+        }
+
+        .results-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 5px;
+        }
+
+        .results-table th, .results-table td {
+            padding: 8px 10px;
+            font-size: 15px;
+        }
+
+        .results-table th {
+            font-weight: 600;
+            text-align: center;
+            border-bottom: 1.5px solid #a6a6a6;
+        }
+
+        .results-table td {
+            text-align: center;
+            border-bottom: 1px solid #d0d0d0;
+        }
+
+        .results-table td.subject-label {
+            text-align: left;
+            font-weight: 500;
+        }
+
+        .results-table tr.total-row td {
+            border-top: 1.5px solid #a6a6a6;
+            border-bottom: none;
+            font-weight: bold;
+        }
+
+        .final-percent {
+            text-align: center;
+            font-size: 64px;
+            font-weight: bold;
+            margin: 20px 0 10px 0;
+        }
+
+        .percent-fail {
+            color: #d32f2f;
+        }
+
+        .percent-pass {
+            color: #2e7d32;
+        }
+
+        /* LÁBLÉC */
+        .footer {
+            padding: 10px 18px;
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-end;
+            font-size: 13px;
+            color: var(--text-muted);
+        }
+
+        .footer-left {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .question-stats {
+            font-size: 13px;
+            color: #333;
+        }
+
+        .footer-time {
+            text-align: right;
+            line-height: 1.4;
+        }
+
+        /* BEÁLLÍTÁSOK KÉPERNYŐ */
+        .setup-screen {
+            padding: 40px 20px;
+            text-align: center;
+        }
+
+        .setup-table {
+            margin: 20px auto;
+            border-collapse: collapse;
+        }
+
+        .setup-table th, .setup-table td {
+            border: 1px solid var(--border);
+            padding: 8px 16px;
+            font-size: 15px;
+        }
+
+        .setup-table input {
+            width: 60px;
+            text-align: center;
+            font-size: 15px;
+            padding: 4px;
+        }
+
+        .start-btn {
+            background: var(--primary);
+            color: #fff;
+            border: none;
+            padding: 10px 32px;
+            font-size: 16px;
+            font-weight: bold;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+
+        .reset-stats-btn {
+            margin-top: 15px;
+            background: transparent;
+            border: none;
+            color: #888;
+            font-size: 12px;
+            cursor: pointer;
+            text-decoration: underline;
+        }
+    </style>
 </head>
 <body>
     <div class="app-window">
@@ -46,9 +316,6 @@
             </div>
 
             <div class="body-content">
-                <!-- Idő lejárt üzenet -->
-                <div id="timeExpiredMsg" class="time-expired-msg">Lejárt az idő!</div>
-
                 <!-- Aktív kérdés felület -->
                 <div id="questionPanel">
                     <div class="nav-row">
@@ -58,7 +325,7 @@
                     <div class="answers-container" id="answersContainer"></div>
                 </div>
 
-                <!-- Végeredmény táblázat -->
+                <!-- Végeredmény táblázat felület -->
                 <div id="resultPanel" style="display:none;">
                     <fieldset class="results-fieldset">
                         <legend>Eredmény</legend>
@@ -102,6 +369,7 @@
         let timerInterval = null;
         let hasAnsweredCurrent = false;
 
+        // --- BEÁLLÍTÁSOK BETÖLTÉSE ÉS MENTÉSE ---
         window.addEventListener('DOMContentLoaded', () => {
             loadSavedSettings();
         });
@@ -134,6 +402,7 @@
             localStorage.setItem('setting_autoNext', isChecked);
         }
 
+        // --- LOCALSTORAGE STATISZTIKA KEZELÉS ---
         function getCompletedTestsCount() {
             return parseInt(localStorage.getItem('completedTestsCount')) || 0;
         }
@@ -165,6 +434,7 @@
             }
         }
 
+        // --- TESZT VEZÉRLÉS ---
         function shuffle(arr) {
             for (let i = arr.length - 1; i > 0; i--) {
                 const j = Math.floor(Math.random() * (i + 1));
@@ -179,6 +449,7 @@
                 return;
             }
 
+            // Elmentjük a jelenlegi kérdésszám beállításokat
             saveQuestionCounts();
 
             const keys = ['I', 'II', 'III', 'IV'];
@@ -219,24 +490,7 @@
             timerInterval = setInterval(() => {
                 qTime++;
                 tTime++;
-                
-                // Kérdés időzítő frissítése és villogás kezelése (50mp felett)
-                const qTimerEl = document.getElementById('questionTimer');
-                qTimerEl.innerText = fmtTime(qTime);
-                if (qTime > 50) {
-                    qTimerEl.className = 'blinking-timer';
-                } else {
-                    qTimerEl.className = '';
-                }
-
-                // 60 másodperc után megjelenik a Lejárt az idő felirat
-                const expiredMsg = document.getElementById('timeExpiredMsg');
-                if (qTime >= 60) {
-                    expiredMsg.style.display = 'block';
-                } else {
-                    expiredMsg.style.display = 'none';
-                }
-
+                document.getElementById('questionTimer').innerText = fmtTime(qTime);
                 document.getElementById('testTimer').innerText = fmtTime(tTime);
             }, 1000);
 
@@ -252,10 +506,7 @@
         function loadQuestion() {
             hasAnsweredCurrent = false;
             qTime = 0;
-            const qTimerEl = document.getElementById('questionTimer');
-            qTimerEl.innerText = '00:00';
-            qTimerEl.className = '';
-            document.getElementById('timeExpiredMsg').style.display = 'none';
+            document.getElementById('questionTimer').innerText = '00:00';
 
             const q = selectedQuestions[currentIndex];
             document.getElementById('currentProgress').innerText = (currentIndex + 1) + '/' + selectedQuestions.length;
@@ -266,23 +517,6 @@
             document.getElementById('metaTopic2').innerText = q.topic2 || '';
             document.getElementById('questionText').innerText = q.question;
 
-            // Válaszok véletlen keverése az eredeti indexek megőrzésével
-            let shuffledAnswers = q.answers.map((ansText, originalIndex) => {
-                return { text: ansText, index: originalIndex };
-            });
-            shuffle(shuffledAnswers);
-
-            const box = document.getElementById('answersContainer');
-            box.innerHTML = '';
-
-            shuffledAnswers.forEach(item => {
-                const btn = document.createElement('button');
-                btn.className = 'answer-btn';
-                btn.innerText = item.text;
-                btn.onclick = () => selectAnswer(btn, item.index, q.correctIndex);
-                box.appendChild(btn);
-            });
-
             const history = getQuestionHistory(q.subjKey, q.orderNr);
             const statsLabel = document.getElementById('questionStatsLabel');
             if (history.seen === 0) {
@@ -290,38 +524,40 @@
             } else {
                 statsLabel.innerText = `A statisztikád ennél a kérdésnél: ${history.correct}/${history.seen} helyes válasz.`;
             }
+
+            const box = document.getElementById('answersContainer');
+            box.innerHTML = '';
+
+            q.answers.forEach((ans, idx) => {
+                const btn = document.createElement('button');
+                btn.className = 'answer-btn';
+                btn.innerText = ans;
+                btn.onclick = () => selectAnswer(idx);
+                box.appendChild(btn);
+            });
         }
 
-        function selectAnswer(clickedBtn, chosenIndex, correctIndex) {
+        function selectAnswer(chosenIdx) {
             if (hasAnsweredCurrent) return;
             hasAnsweredCurrent = true;
             answeredCount++;
 
-            // Válaszadáskor megállítjuk a kérdés időszámlálóját
-            clearInterval(timerInterval);
-            document.getElementById('timeExpiredMsg').style.display = 'none';
-
             const q = selectedQuestions[currentIndex];
             const buttons = document.querySelectorAll('.answer-btn');
-            const isCorrect = (chosenIndex === correctIndex);
+            const isCorrect = (chosenIdx === q.correctIndex);
 
             updateQuestionHistory(q.subjKey, q.orderNr, isCorrect);
-
-            buttons.forEach(btn => {
-                if (btn.innerText === q.answers[correctIndex]) {
-                    btn.classList.add('correct');
-                }
-            });
-
-            if (!isCorrect) {
-                clickedBtn.classList.add('incorrect');
-            }
 
             if (isCorrect) {
                 correctCount++;
                 q.userAnswerState = "correct";
+                buttons[chosenIdx].classList.add('correct');
             } else {
                 q.userAnswerState = "incorrect";
+                buttons[chosenIdx].classList.add('incorrect');
+                if (q.correctIndex >= 0 && q.correctIndex < buttons.length) {
+                    buttons[q.correctIndex].classList.add('correct');
+                }
             }
 
             document.getElementById('scoreDisplay').innerText = correctCount + '/' + answeredCount;
