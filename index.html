@@ -1,0 +1,552 @@
+<!DOCTYPE html>
+<html lang="hu">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>Biztosítás-közvetítői vizsga</title>
+    
+    <!-- FIX BEHIVATKOZÁS: közvetlenül betölti az adatbázist -->
+    <script src="questions.js"></script>
+
+    <style>
+        :root {
+            --primary: #1976d2;
+            --bg: #ececec;
+            --card: #f0f0f0;
+            --border: #bfbfbf;
+            --text-main: #000000;
+            --text-muted: #333333;
+            --green-bg: #d4edda;
+            --green-text: #155724;
+            --red-bg: #f8d7da;
+            --red-text: #721c24;
+        }
+
+        * {
+            box-sizing: border-box;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
+        }
+
+        body {
+            margin: 0;
+            background: #d8d8d8;
+            color: var(--text-main);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 12px;
+        }
+
+        .app-window {
+            width: 100%;
+            max-width: 960px;
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 4px;
+            box-shadow: 0 4px 14px rgba(0,0,0,0.2);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            min-height: 600px;
+        }
+
+        /* FEJLÉC */
+        .header {
+            padding: 12px 18px;
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+        }
+
+        .header-left div {
+            font-size: 15px;
+            margin-bottom: 4px;
+        }
+
+        .header-right {
+            text-align: right;
+            max-width: 55%;
+            font-size: 13px;
+            color: var(--text-muted);
+            line-height: 1.35;
+        }
+
+        /* TÖRZS */
+        .body-content {
+            padding: 10px 25px 20px 25px;
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .nav-row {
+            display: flex;
+            justify-content: flex-end;
+            margin-bottom: 15px;
+        }
+
+        .next-btn {
+            background: #e1e1e1;
+            border: 1px solid #707070;
+            border-radius: 2px;
+            padding: 6px 26px;
+            font-size: 18px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        .next-btn:active {
+            background: #bcbcbc;
+        }
+
+        .question-text {
+            font-size: 17px;
+            text-align: center;
+            margin: 15px 0 25px 0;
+            line-height: 1.4;
+        }
+
+        .answers-container {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            width: 100%;
+        }
+
+        .answer-btn {
+            background: #fff;
+            border: 1px solid #7f7f7f;
+            border-radius: 2px;
+            padding: 14px 18px;
+            font-size: 15px;
+            text-align: center;
+            cursor: pointer;
+            outline: none;
+            line-height: 1.3;
+        }
+
+        .answer-btn:hover:not(:disabled) {
+            background: #f7f7f7;
+        }
+
+        .answer-btn.correct {
+            background: var(--green-bg) !important;
+            border-color: #28a745 !important;
+            color: var(--green-text) !important;
+            font-weight: bold;
+        }
+
+        .answer-btn.incorrect {
+            background: var(--red-bg) !important;
+            border-color: #dc3545 !important;
+            color: var(--red-text) !important;
+        }
+
+        /* EREDMÉNY KERET ÉS TÁBLÁZAT */
+        .results-fieldset {
+            border: 1px solid #9e9e9e;
+            border-radius: 3px;
+            padding: 15px 25px;
+            margin: 10px 0 20px 0;
+            background: #f0f0f0;
+        }
+
+        .results-fieldset legend {
+            font-size: 15px;
+            font-weight: 500;
+            padding: 0 6px;
+        }
+
+        .results-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 5px;
+        }
+
+        .results-table th, .results-table td {
+            padding: 8px 10px;
+            font-size: 15px;
+        }
+
+        .results-table th {
+            font-weight: 600;
+            text-align: center;
+            border-bottom: 1.5px solid #a6a6a6;
+        }
+
+        .results-table td {
+            text-align: center;
+            border-bottom: 1px solid #d0d0d0;
+        }
+
+        .results-table td.subject-label {
+            text-align: left;
+            font-weight: 500;
+        }
+
+        .results-table tr.total-row td {
+            border-top: 1.5px solid #a6a6a6;
+            border-bottom: none;
+            font-weight: bold;
+        }
+
+        .final-percent {
+            text-align: center;
+            font-size: 64px;
+            font-weight: bold;
+            margin: 20px 0 10px 0;
+        }
+
+        .percent-fail {
+            color: #d32f2f;
+        }
+
+        .percent-pass {
+            color: #2e7d32;
+        }
+
+        /* LÁBLÉC */
+        .footer {
+            padding: 10px 18px;
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-end;
+            font-size: 13px;
+            color: var(--text-muted);
+        }
+
+        .footer-time {
+            text-align: right;
+            line-height: 1.4;
+        }
+
+        /* BEÁLLÍTÁSOK KÉPERNYŐ */
+        .setup-screen {
+            padding: 40px 20px;
+            text-align: center;
+        }
+
+        .setup-table {
+            margin: 20px auto;
+            border-collapse: collapse;
+        }
+
+        .setup-table th, .setup-table td {
+            border: 1px solid var(--border);
+            padding: 8px 16px;
+            font-size: 15px;
+        }
+
+        .setup-table input {
+            width: 60px;
+            text-align: center;
+            font-size: 15px;
+            padding: 4px;
+        }
+
+        .start-btn {
+            background: var(--primary);
+            color: #fff;
+            border: none;
+            padding: 10px 32px;
+            font-size: 16px;
+            font-weight: bold;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+    <div class="app-window">
+        <!-- 1. BEÁLLÍTÁS KÉPERNYŐ -->
+        <div id="setupScreen" class="setup-screen">
+            <h2>Biztosítás-közvetítői vizsga</h2>
+
+            <table class="setup-table">
+                <thead>
+                    <tr><th>Vizsgatárgy</th><th>Kérdések száma</th></tr>
+                </thead>
+                <tbody>
+                    <tr><td>I.</td><td><input type="number" id="cnt_I" value="10" min="0"></td></tr>
+                    <tr><td>II.</td><td><input type="number" id="cnt_II" value="10" min="0"></td></tr>
+                    <tr><td>III.</td><td><input type="number" id="cnt_III" value="10" min="0"></td></tr>
+                    <tr><td>IV.</td><td><input type="number" id="cnt_IV" value="10" min="0"></td></tr>
+                </tbody>
+            </table>
+
+            <button class="start-btn" onclick="startQuiz()">Teszt indítása</button>
+        </div>
+
+        <!-- 2. KÉRDÉS- ÉS EREDMÉNY MEGJELENÍTŐ KÉPERNYŐ -->
+        <div id="quizScreen" style="display:none; flex-direction:column; flex:1;">
+            <div class="header">
+                <div class="header-left">
+                    <div>Biztosítás-közvetítői vizsga</div>
+                    <div>Teszt sorszám: <span id="testOrderNr">1</span> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Kérdés: <span id="currentProgress">1/20</span></div>
+                    <div>Helyes válaszok: <span id="scoreDisplay">0/0</span></div>
+                </div>
+                <div class="header-right" id="headerRightArea">
+                    <div id="metaSubject">-</div>
+                    <div id="metaTopic1">-</div>
+                    <div id="metaTopic2">-</div>
+                </div>
+            </div>
+
+            <div class="body-content">
+                <!-- Aktív kérdés felület -->
+                <div id="questionPanel">
+                    <div class="nav-row">
+                        <button class="next-btn" onclick="nextQuestion()">&gt;&gt;&gt;</button>
+                    </div>
+                    <div class="question-text" id="questionText">Kérdés betöltése...</div>
+                    <div class="answers-container" id="answersContainer"></div>
+                </div>
+
+                <!-- Végeredmény táblázat felület -->
+                <div id="resultPanel" style="display:none;">
+                    <fieldset class="results-fieldset">
+                        <legend>Eredmény</legend>
+                        <table class="results-table">
+                            <thead>
+                                <tr>
+                                    <th style="text-align:left;"></th>
+                                    <th>Kérdések</th>
+                                    <th>Helyes válaszok</th>
+                                    <th>Helytelen válaszok</th>
+                                    <th>Kihagyott válaszok</th>
+                                </tr>
+                            </thead>
+                            <tbody id="resultsTableBody"></tbody>
+                        </table>
+                    </fieldset>
+                    <div class="final-percent" id="finalPercentText">0%</div>
+                </div>
+            </div>
+
+            <div class="footer">
+                <div>
+                    <label id="autoNextLabel"><input type="checkbox" id="autoNext"> Automatikus továbblépés</label>
+                    <button id="restartBtn" class="next-btn" style="display:none; padding:4px 16px; font-size:14px;" onclick="location.reload()">Új teszt indítása</button>
+                </div>
+                <div class="footer-time">
+                    <div>Kérdéssel töltött idő: <span id="questionTimer">00:00</span></div>
+                    <div>Teszttel töltött idő: <span id="testTimer">00:00</span></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let selectedQuestions = [];
+        let currentIndex = 0;
+        let correctCount = 0;
+        let answeredCount = 0;
+        let qTime = 0, tTime = 0;
+        let timerInterval = null;
+        let hasAnsweredCurrent = false;
+
+        function shuffle(arr) {
+            for (let i = arr.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [arr[i], arr[j]] = [arr[j], arr[i]];
+            }
+            return arr;
+        }
+
+        function startQuiz() {
+            if (typeof rawData === 'undefined' || !rawData) {
+                alert("Nem található a questions.js fájl! Győződj meg róla, hogy az index.html mellett van.");
+                return;
+            }
+
+            const keys = ['I', 'II', 'III', 'IV'];
+            selectedQuestions = [];
+
+            keys.forEach(k => {
+                const cnt = parseInt(document.getElementById('cnt_' + k).value) || 0;
+                if (rawData[k] && cnt > 0) {
+                    const pool = shuffle([...rawData[k]]);
+                    const picked = pool.slice(0, cnt);
+                    
+                    picked.forEach(item => {
+                        item.subjKey = k;
+                        item.userAnswerState = "skipped";
+                    });
+                    
+                    selectedQuestions.push(...picked);
+                }
+            });
+
+            if (selectedQuestions.length === 0) {
+                alert('Válassz legalább 1 kérdést!');
+                return;
+            }
+
+            document.getElementById('setupScreen').style.display = 'none';
+            document.getElementById('quizScreen').style.display = 'flex';
+
+            currentIndex = 0;
+            correctCount = 0;
+            answeredCount = 0;
+            qTime = 0;
+            tTime = 0;
+
+            clearInterval(timerInterval);
+            timerInterval = setInterval(() => {
+                qTime++;
+                tTime++;
+                document.getElementById('questionTimer').innerText = fmtTime(qTime);
+                document.getElementById('testTimer').innerText = fmtTime(tTime);
+            }, 1000);
+
+            loadQuestion();
+        }
+
+        function fmtTime(sec) {
+            const m = String(Math.floor(sec / 60)).padStart(2, '0');
+            const s = String(sec % 60).padStart(2, '0');
+            return m + ':' + s;
+        }
+
+        function loadQuestion() {
+            hasAnsweredCurrent = false;
+            qTime = 0;
+            document.getElementById('questionTimer').innerText = '00:00';
+
+            const q = selectedQuestions[currentIndex];
+            document.getElementById('currentProgress').innerText = (currentIndex + 1) + '/' + selectedQuestions.length;
+            document.getElementById('testOrderNr').innerText = q.orderNr;
+            document.getElementById('scoreDisplay').innerText = correctCount + '/' + answeredCount;
+
+            document.getElementById('metaSubject').innerText = q.subject || '';
+            document.getElementById('metaTopic1').innerText = q.topic1 || '';
+            document.getElementById('metaTopic2').innerText = q.topic2 || '';
+            document.getElementById('questionText').innerText = q.question;
+
+            const box = document.getElementById('answersContainer');
+            box.innerHTML = '';
+
+            q.answers.forEach((ans, idx) => {
+                const btn = document.createElement('button');
+                btn.className = 'answer-btn';
+                btn.innerText = ans;
+                btn.onclick = () => selectAnswer(idx);
+                box.appendChild(btn);
+            });
+        }
+
+        function selectAnswer(chosenIdx) {
+            if (hasAnsweredCurrent) return;
+            hasAnsweredCurrent = true;
+            answeredCount++;
+
+            const q = selectedQuestions[currentIndex];
+            const buttons = document.querySelectorAll('.answer-btn');
+
+            if (chosenIdx === q.correctIndex) {
+                correctCount++;
+                q.userAnswerState = "correct";
+                buttons[chosenIdx].classList.add('correct');
+            } else {
+                q.userAnswerState = "incorrect";
+                buttons[chosenIdx].classList.add('incorrect');
+                if (q.correctIndex >= 0 && q.correctIndex < buttons.length) {
+                    buttons[q.correctIndex].classList.add('correct');
+                }
+            }
+
+            document.getElementById('scoreDisplay').innerText = correctCount + '/' + answeredCount;
+
+            if (document.getElementById('autoNext').checked) {
+                setTimeout(nextQuestion, 1100);
+            }
+        }
+
+        function nextQuestion() {
+            if (currentIndex + 1 < selectedQuestions.length) {
+                currentIndex++;
+                loadQuestion();
+            } else {
+                showResultsScreen();
+            }
+        }
+
+        function showResultsScreen() {
+            clearInterval(timerInterval);
+
+            document.getElementById('questionPanel').style.display = 'none';
+            document.getElementById('resultPanel').style.display = 'block';
+            document.getElementById('autoNextLabel').style.display = 'none';
+            document.getElementById('restartBtn').style.display = 'inline-block';
+            document.getElementById('headerRightArea').style.visibility = 'hidden';
+
+            document.getElementById('currentProgress').innerText = selectedQuestions.length + '/' + selectedQuestions.length;
+            document.getElementById('scoreDisplay').innerText = correctCount + '/' + selectedQuestions.length;
+
+            const stats = {
+                'I': { label: 'I. Vizsgatárgy:', total: 0, correct: 0, incorrect: 0, skipped: 0 },
+                'II': { label: 'II. Vizsgatárgy:', total: 0, correct: 0, incorrect: 0, skipped: 0 },
+                'III': { label: 'III. Vizsgatárgy:', total: 0, correct: 0, incorrect: 0, skipped: 0 },
+                'IV': { label: 'IV. Vizsgatárgy:', total: 0, correct: 0, incorrect: 0, skipped: 0 }
+            };
+
+            selectedQuestions.forEach(q => {
+                const k = q.subjKey;
+                if (stats[k]) {
+                    stats[k].total++;
+                    if (q.userAnswerState === 'correct') stats[k].correct++;
+                    else if (q.userAnswerState === 'incorrect') stats[k].incorrect++;
+                    else stats[k].skipped++;
+                }
+            });
+
+            const tbody = document.getElementById('resultsTableBody');
+            tbody.innerHTML = '';
+
+            let sumTotal = 0, sumCorrect = 0, sumIncorrect = 0, sumSkipped = 0;
+
+            ['I', 'II', 'III', 'IV'].forEach(k => {
+                const row = stats[k];
+                if (row.total > 0) {
+                    sumTotal += row.total;
+                    sumCorrect += row.correct;
+                    sumIncorrect += row.incorrect;
+                    sumSkipped += row.skipped;
+
+                    const tr = document.createElement('tr');
+                    tr.innerHTML = `
+                        <td class="subject-label">${row.label}</td>
+                        <td>${row.total}</td>
+                        <td>${row.correct}</td>
+                        <td>${row.incorrect}</td>
+                        <td>${row.skipped}</td>
+                    `;
+                    tbody.appendChild(tr);
+                }
+            });
+
+            const totalTr = document.createElement('tr');
+            totalTr.className = 'total-row';
+            totalTr.innerHTML = `
+                <td class="subject-label">Összesen:</td>
+                <td>${sumTotal}</td>
+                <td>${sumCorrect}</td>
+                <td>${sumIncorrect}</td>
+                <td>${sumSkipped}</td>
+            `;
+            tbody.appendChild(totalTr);
+
+            const percent = sumTotal > 0 ? Math.round((sumCorrect / sumTotal) * 100) : 0;
+            const percentDiv = document.getElementById('finalPercentText');
+            percentDiv.innerText = percent + '%';
+
+            if (percent >= 60) {
+                percentDiv.className = 'final-percent percent-pass';
+            } else {
+                percentDiv.className = 'final-percent percent-fail';
+            }
+        }
+    </script>
+</body>
+</html>
