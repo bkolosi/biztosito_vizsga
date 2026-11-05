@@ -46,7 +46,7 @@
             </div>
 
             <div class="body-content">
-                <!-- Idő lejárt üzenet (alul középen) -->
+                <!-- Idő lejárt üzenet -->
                 <div id="timeExpiredMsg" class="time-expired-msg">Lejárt az idő!</div>
 
                 <!-- Aktív kérdés felület -->
@@ -58,7 +58,7 @@
                     <div class="answers-container" id="answersContainer"></div>
                 </div>
 
-                <!-- Végeredmény táblázat felület -->
+                <!-- Végeredmény táblázat -->
                 <div id="resultPanel" style="display:none;">
                     <fieldset class="results-fieldset">
                         <legend>Eredmény</legend>
@@ -175,7 +175,7 @@
 
         function startQuiz() {
             if (typeof rawData === 'undefined' || !rawData) {
-                alert("Nem található a questions.js fájl! Győződj meg róla, hogy az index.html mellett van.");
+                alert("Hiba: Nem található vagy nem betölthető a questions.js fájl! Ellenőrizd, hogy a fájl az index.html mellett van-e.");
                 return;
             }
 
@@ -200,7 +200,7 @@
             });
 
             if (selectedQuestions.length === 0) {
-                alert('Válassz legalább 1 kérdést!');
+                alert('Válassz ki legalább 1 kérdést valamelyik tárgynál!');
                 return;
             }
 
@@ -220,7 +220,6 @@
                 qTime++;
                 tTime++;
                 
-                // Kérdés időzítő frissítése és 50mp feletti villogás kezelése
                 const qTimerEl = document.getElementById('questionTimer');
                 qTimerEl.innerText = fmtTime(qTime);
                 if (qTime > 50) {
@@ -229,7 +228,6 @@
                     qTimerEl.className = '';
                 }
 
-                // 60 másodperc után megjelenik az idő lejárt üzenet
                 const expiredMsg = document.getElementById('timeExpiredMsg');
                 if (qTime >= 60) {
                     expiredMsg.style.display = 'block';
@@ -266,19 +264,19 @@
             document.getElementById('metaTopic2').innerText = q.topic2 || '';
             document.getElementById('questionText').innerText = q.question;
 
-            // Válaszok összekeverése úgy, hogy a helyes válasz indexét is kövessük
-            let answerIndices = q.answers.map((_, idx) => idx);
-            shuffle(answerIndices);
+            let shuffledAnswers = q.answers.map((ansText, originalIndex) => {
+                return { text: ansText, index: originalIndex };
+            });
+            shuffle(shuffledAnswers);
 
             const box = document.getElementById('answersContainer');
             box.innerHTML = '';
 
-            answerIndices.forEach(originalIdx => {
+            shuffledAnswers.forEach(item => {
                 const btn = document.createElement('button');
                 btn.className = 'answer-btn';
-                btn.innerText = q.answers[originalIdx];
-                // Eltároljuk a gombon, hogy ez az eredeti tömbbeli index melyik
-                btn.onclick = () => selectAnswer(originalIdx);
+                btn.innerText = item.text;
+                btn.onclick = () => selectAnswer(btn, item.index, q.correctIndex);
                 box.appendChild(btn);
             });
 
@@ -291,34 +289,135 @@
             }
         }
 
-        function selectAnswer(chosenOriginalIdx) {
+        function selectAnswer(clickedBtn, chosenIndex, correctIndex) {
             if (hasAnsweredCurrent) return;
             hasAnsweredCurrent = true;
             answeredCount++;
 
             const q = selectedQuestions[currentIndex];
             const buttons = document.querySelectorAll('.answer-btn');
-            const isCorrect = (chosenOriginalIdx === q.correctIndex);
+            const isCorrect = (chosenIndex === correctIndex);
 
             updateQuestionHistory(q.subjKey, q.orderNr, isCorrect);
 
-            // Megkeressük vizuálisan a gombok közül azt, amelyik az eredeti helyes választ tartalmazza
             buttons.forEach(btn => {
-                // Megvizsgáljuk a gomb kattintási eseményéből az indexet, vagy egyszerűen összevetjük a szöveget
-                // A legegyszerűbb, ha a gombon jelöljük az eredeti indexet:
+                if (btn.innerText === q.answers[correctIndex]) {
+                    btn.classList.add('correct');
+                }
             });
 
-            // Gombok színezése
-            buttons.forEach(btn => {
-                // Kikeresztelkedés az eredeti index alapján (ha hozzárendeljük a gomothoz)
-            });
+            if (!isCorrect) {
+                clickedBtn.classList.add('incorrect');
+            }
 
-            // Helyette pontosabb gomb-bejárás:
-            buttons.forEach(btn => {
-                // Megnézzük, melyik gombhoz tartozik a helyes válasz szövege vagy indexe
-            });
+            if (isCorrect) {
+                correctCount++;
+                q.userAnswerState = "correct";
+            } else {
+                q.userAnswerState = "incorrect";
+            }
 
-            // Egyszerűsített, pontos gomb-megjelölés index alapon:
-            // Ehhez kössük az eredeti indexet a gomchoz a létrehozáskor:
-            /* Javitott logika alább */
+            document.getElementById('scoreDisplay').innerText = correctCount + '/' + answeredCount;
+
+            if (document.getElementById('autoNext').checked) {
+                setTimeout(nextQuestion, 1100);
+            }
         }
+
+        function nextQuestion() {
+            const q = selectedQuestions[currentIndex];
+            if (!hasAnsweredCurrent) {
+                updateQuestionHistory(q.subjKey, q.orderNr, false);
+            }
+
+            if (currentIndex + 1 < selectedQuestions.length) {
+                currentIndex++;
+                loadQuestion();
+            } else {
+                showResultsScreen();
+            }
+        }
+
+        function showResultsScreen() {
+            clearInterval(timerInterval);
+
+            let completed = getCompletedTestsCount() + 1;
+            localStorage.setItem('completedTestsCount', completed);
+            document.getElementById('testOrderNr').innerText = completed;
+
+            document.getElementById('questionPanel').style.display = 'none';
+            document.getElementById('resultPanel').style.display = 'block';
+            document.getElementById('autoNextLabel').style.display = 'none';
+            document.getElementById('questionStatsLabel').style.display = 'none';
+            document.getElementById('restartBtn').style.display = 'inline-block';
+            document.getElementById('headerRightArea').style.visibility = 'hidden';
+
+            document.getElementById('currentProgress').innerText = selectedQuestions.length + '/' + selectedQuestions.length;
+            document.getElementById('scoreDisplay').innerText = correctCount + '/' + selectedQuestions.length;
+
+            const stats = {
+                'I': { label: 'I. Vizsgatárgy:', total: 0, correct: 0, incorrect: 0, skipped: 0 },
+                'II': { label: 'II. Vizsgatárgy:', total: 0, correct: 0, incorrect: 0, skipped: 0 },
+                'III': { label: 'III. Vizsgatárgy:', total: 0, correct: 0, incorrect: 0, skipped: 0 },
+                'IV': { label: 'IV. Vizsgatárgy:', total: 0, correct: 0, incorrect: 0, skipped: 0 }
+            };
+
+            selectedQuestions.forEach(q => {
+                const k = q.subjKey;
+                if (stats[k]) {
+                    stats[k].total++;
+                    if (q.userAnswerState === 'correct') stats[k].correct++;
+                    else if (q.userAnswerState === 'incorrect') stats[k].incorrect++;
+                    else stats[k].skipped++;
+                }
+            });
+
+            const tbody = document.getElementById('resultsTableBody');
+            tbody.innerHTML = '';
+
+            let sumTotal = 0, sumCorrect = 0, sumIncorrect = 0, sumSkipped = 0;
+
+            ['I', 'II', 'III', 'IV'].forEach(k => {
+                const row = stats[k];
+                if (row.total > 0) {
+                    sumTotal += row.total;
+                    sumCorrect += row.correct;
+                    sumIncorrect += row.incorrect;
+                    sumSkipped += row.skipped;
+
+                    const tr = document.createElement('tr');
+                    tr.innerHTML = `
+                        <td class="subject-label">${row.label}</td>
+                        <td>${row.total}</td>
+                        <td>${row.correct}</td>
+                        <td>${row.incorrect}</td>
+                        <td>${row.skipped}</td>
+                    `;
+                    tbody.appendChild(tr);
+                }
+            });
+
+            const totalTr = document.createElement('tr');
+            totalTr.className = 'total-row';
+            totalTr.innerHTML = `
+                <td class="subject-label">Összesen:</td>
+                <td>${sumTotal}</td>
+                <td>${sumCorrect}</td>
+                <td>${sumIncorrect}</td>
+                <td>${sumSkipped}</td>
+            `;
+            tbody.appendChild(totalTr);
+
+            const percent = sumTotal > 0 ? Math.round((sumCorrect / sumTotal) * 100) : 0;
+            const percentDiv = document.getElementById('finalPercentText');
+            percentDiv.innerText = percent + '%';
+
+            if (percent >= 60) {
+                percentDiv.className = 'final-percent percent-pass';
+            } else {
+                percentDiv.className = 'final-percent percent-fail';
+            }
+        }
+    </script>
+</body>
+</html>
